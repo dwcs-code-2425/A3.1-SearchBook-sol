@@ -5,16 +5,22 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Búsqueda</title>
+    <link rel="stylesheet" href="css/bootstrap.min.css">
+    <!-- <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous"> -->
 </head>
 
 <body>
-    <h1>Búsqueda de libros</h1>
+    <div class="container-fluid">
+        <h1>Búsqueda de libros</h1>
 
-    <form method="GET">
-        <label for="busqueda">Introduzca los términos de búsqueda: </label>
-        <input type="search" name="busqueda" id="busqueda" required>
-        <button type="submit">Buscar</button>
-    </form>
+        <form method="GET">
+            <div class="mb-3">
+                <label for="busqueda" class="form-label">Introduzca los términos de búsqueda: </label>
+                <input type="search" class="form-control" name="busqueda" id="busqueda" required>
+            </div>
+            <button type="submit" class="btn btn-primary">Buscar</button>
+        </form>
+    </div>
 </body>
 
 </html>
@@ -29,10 +35,10 @@ if (isset($_GET["busqueda"])) {
             $con = getConnection();
 
             //En la bd bookdb no importan mayúsculas/minúsculas porque está usando collation caseinsensitive, pero no está demás que nuestro código no dependa de la collation de la base de datos
-            $stmt = $con->prepare("select title from books where UPPER(title) like :busqueda 
+            $stmt = $con->prepare("select title as resultado 
+            from books where UPPER(title) like :busqueda 
              UNION 
- select first_name
- from authors
+ SELECT concat(first_name, ' ', last_name) as resultado FROM authors
  where first_name like :busqueda");
             $param_busqueda = "%" . strtoupper($terminos_busqueda) . "%";
             $stmt->bindParam("busqueda", $param_busqueda);
@@ -48,19 +54,19 @@ if (isset($_GET["busqueda"])) {
             echo "<p> Filas afectadas $filas_afectadas</p>";
 
             //Después de ejecutar
-            echo "<pre>";
-            $stmt->debugDumpParams();
-            echo "</pre>";
+            // echo "<pre>";
+            // $stmt->debugDumpParams();
+            // echo "</pre>";
 
             //  $array = $stmt->fetchAll(PDO::FETCH_ASSOC);
             echo "<ol>";
-            $contador_filas = 0; 
+            $contador_filas = 0;
             while (($row = $stmt->fetch(PDO::FETCH_ASSOC)) !== false) {
-                echo "<li>" . $row["title"] . "</li>";
+                echo "<li>" . $row["resultado"] . "</li>";
                 $contador_filas++;
             }
             echo "</ol>";
-            if($contador_filas==0){
+            if ($contador_filas == 0) {
                 echo "<p>No se han encontrado resultados</p>";
             }
 
